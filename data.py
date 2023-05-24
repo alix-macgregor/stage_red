@@ -51,8 +51,7 @@ def prob_taille(liste_df) :
     taille_ref = df_ref.shape[0]
 
     for i in range(len(liste_df)) :
-        file = liste_df[i]
-        df = pd.read_csv(file)
+        df = liste_df[i]
         taille = df.shape[0]
 
         if taille_ref-taille != 0 :
@@ -71,3 +70,6 @@ def rajout_ligne(liste_df) :
             df = pd.concat([df, df.loc[[df.shape[0]-1]]], ignore_index=True)
 
     return liste_df
+
+def retrait_ligne(liste_df) :
+    pass
