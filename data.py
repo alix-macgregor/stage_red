@@ -21,6 +21,8 @@ def separation_fichier(file) :
 
             elif i == k+1 :
                 name = row[1].strip('.D')
+                if '-' in name :
+                    name = name.replace("-", "_")
                 csv_file.append(name)
 
             else :
@@ -55,10 +57,10 @@ def prob_taille(liste_df) :
         taille = df.shape[0]
 
         if taille_ref-taille != 0 :
-            prob.append(True)
+            prob.append((True, taille_ref-taille))
 
         else :
-            prob.append(False)
+            prob.append((False, taille_ref-taille))
 
     return prob
 
@@ -66,10 +68,32 @@ def rajout_ligne(liste_df) :
     prob = prob_taille(liste_df)
 
     for i, df in enumerate(liste_df) :
-        if prob[i] :
-            df = pd.concat([df, df.loc[[df.shape[0]-1]]], ignore_index=True)
-
+        pb, delta = prob[i]
+        if pb :
+            if delta>0 :
+                for i in range(delta) :
+                    liste_df[i] = pd.concat([df, df.loc[[df.shape[0]-1]]], ignore_index=True)
     return liste_df
 
 def retrait_ligne(liste_df) :
     pass
+
+def tps_retention(liste_df) :
+    diff = []
+    df_ref = liste_df[0]
+
+    for df in liste_df :
+        for i, tps in enumerate(df['Retention time']) :
+            if df_ref['Retention time'][i] != tps :
+                diff.append(abs(df_ref['Retention time'][i]-tps))
+
+        if np.mean(diff) < 0.004 :
+            for i, df in enumerate(liste_df) :
+                df['Retention time'] = df_ref['Retention time']
+                liste_df[i] = df
+
+        else :
+            print("Ecart trop important")
+        diff = []
+
+    return liste_df
