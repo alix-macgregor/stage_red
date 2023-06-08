@@ -12,46 +12,43 @@ Created on Fri May 19 14:39:23 2023
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
+import os
 import csv
+import math
+
+# PyMS
+from pyms.GCMS.IO.ANDI import ANDI_reader
+from pyms.IntensityMatrix import build_intensity_matrix
+from pyms.BillerBiemann import BillerBiemann
+from pyms.Peak.Function import peak_sum_area
 
 """ Chromatogramme de l'échantillon """
 
-file = "Chromatos/tic_front_ech_1_hydro.csv"
-ech_1_hydro_df = pd.read_csv(file, skiprows=1)
+def recup_ech(dir) :
+    datas = []
+    for name in os.listdir(dir) :
+        andi_file = dir + "/" + name
+        raw_data = ANDI_reader(andi_file)
 
-plt.plot(ech_1_hydro_df['Start of data points'], ech_1_hydro_df['Area'])
+        datas.append(raw_data)
 
-# Note : J'ai récupéré tous les chromatogrammes normalement! Essayer de voir comment les séparer.
+    return datas
 
-""" Ensemble des chromatogrammes """
-# J'ai dû faire en deux fois à voir si ça marche ou pas...
+def recup_areas(datas) :
+    data_peak = []
+    for data in datas :
+        im = build_intensity_matrix(data)
+        peak_list = BillerBiemann(im)
+        data_peak.append(peak_list)
+    areas = []
+    for peak in peak_list :
+        area = peak_sum_area(im, peak)
+        areas.append((peak.rt, area))
 
-with open('Chromatos/CHROMTAB.CSV') as csvfile :
-    reader = csv.reader(csvfile)
-    k = 0
-    csv_files = []
-    csv_file = []
-    
-    for i, row in enumerate(reader) :
-        if row[0] == 'Path':
-            if i != 0 :
-                csv_files.append(csv_file)
-            csv_file = []
-            k = i
-            
-        elif i == k+1 :
-            name = row[1].strip('.D')
-            csv_file.append(name)
-        
-        else :
-            if i != k+2 :
-                csv_file.append({'Retention time' : row[0], 'Abundance' : row[1]})
-                
+    return areas
 
-for csv_file in csv_files :
-    with open(f'Chromatos/{csv_file[0]}.csv', 'w') as csvfile :
-        writer = csv.DictWriter(csvfile, fieldnames=csv_file[1].keys())
-        writer.writeheader()
-        for point in csv_file[1:]:
-              writer.writerow(point)
+def traitement_ANDI(dir) :
+    datas = recup_ech(dir)
+    areas = recup_areas(datas)
