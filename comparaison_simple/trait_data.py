@@ -73,28 +73,22 @@ def merge_cosinedf (df, data, ech) :
     
     return results[['Chromatos Sims', 'Type']]
 
-def traitement(df_complet, ech = None) :
+def traitement(df_complet) :
     df_normal = normal(df_complet)
     df_proj = proj(df_normal)
 
     data_n = run_kmeans(df_normal, 3)
     data_pca = run_kmeans(df_proj, 3)
 
-    if ech is None :
-        df_complet.drop(columns = 'Type', inplace = True)
-        return data_n, data_pca, df_complet
+    for ech in df_complet.index :
+        df_n = apply_cosine(data_n, ech)
+        df_pca = apply_cosine(data_pca, ech)
+    
+        df_n = merge_cosinedf(df_n, df_complet, ech)
+        df_pca = merge_cosinedf(df_pca, df_complet, ech)
 
-    df_n = apply_cosine(data_n, ech)
-    df_pca = apply_cosine(data_pca, ech)
-
-    df_n = merge_cosinedf(df_n, df_complet, ech)
-    df_pca = merge_cosinedf(df_pca, df_complet, ech)
-    
-    df_complet.drop(columns = 'Type', inplace = True)
-    
-    # df_complet['Retention time'] = df_complet.columns
-    # df_complet.astype({'Retention time' : float})
-    
-    df_complet.rename(columns = lambda x : float(x))
+        print(df_pca.head())
+        
+        df_complet.rename(columns = lambda x : float(x))
 
     return df_n, df_pca, df_complet
