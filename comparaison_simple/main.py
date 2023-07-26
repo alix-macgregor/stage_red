@@ -10,23 +10,14 @@ from trait_data import traitement
 
 import matplotlib.pyplot as plt
 
-def simulation(ech = None) :
+def simulation() :
     df_complet, types = data_base(ech)
     
     if types is None :
         print("Erreur : le test taille/rt n'est pas passé")
         return df_complet, None, None
     
-    df_n, df_pca, df_complet = traitement(df_complet, ech)
-    
-    plt.plot(df_complet.columns, df_complet.loc[ech])
-    plt.plot(df_complet.columns, -df_complet.loc[df_pca.index[1]])
-    
-    plt.title(f'{ech} VS {df_pca.index[1]}')
-    plt.xlabel('Time')
-    plt.ylabel('Abundance')
-    plt.show()
-    
+    df_n, df_pca, df_complet = traitement(df_complet)   
     
     print(df_pca.head())  
 
