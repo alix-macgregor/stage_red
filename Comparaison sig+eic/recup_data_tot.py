@@ -117,7 +117,7 @@ def data_mode(mode) :
     """
     liste_ion = [43, 31, 29, 73, 87, 55, 74, 83, 57, 71, 128, 142, 104, 118,
                  91, 105, 134, 117, 149]
-    liste_typ = ['DP', 'S', 'A']
+    liste_typ = ['DP', 'S', 'D', 'A', 'I', 'In', 'NP', 'NA', 'O']
     liste_ech = []
     liste_type = []
     X = []
@@ -133,7 +133,10 @@ def data_mode(mode) :
                 if f'{mode}.CDF' in fil and 'Zone' not in fil :
 
                     file = f'Echantillons{mode_file}_AIA/{folder}/{fil}'
-                    fil = fil.strip('CDF')
+                    fil = fil.strip(f'{mode}.CDF')
+                    fil = fil.strip('_')
+                    fil = fil.lower()
+                    fil = fil.replace(' ', '')
 
                     typ = folder.strip('ChromatosAIA')
                     typ = typ.strip('_.')
