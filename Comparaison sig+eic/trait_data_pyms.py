@@ -67,12 +67,14 @@ def lda(df_complet) :
     # On applique la LDA à notre problème de classification
     lda = LinearDiscriminantAnalysis().fit(X, y)
 
-    type_pred = lda.predict(X_pred)
+
 
     df_complet_lda = pd.DataFrame(lda.transform(X), index = X.index, columns = ['LDA_1', 'LDA_2'])
     df_complet_lda['Type_transform'] = y
 
     if df_complet_lda.shape[0] != df_complet.shape[0] :
+
+        type_pred = lda.predict(X_pred)
 
         X_pred = pd.DataFrame(lda.transform(X_pred), index = X_pred.index, columns = ['LDA_1', 'LDA_2'])
         X_pred['Type_transform'] = type_pred
@@ -93,7 +95,9 @@ def apply_cosine (df_complet, ech) :
     """
     X = df_complet.drop(columns = ['Type'])
 
+
     v1 = np.array(X.loc[ech]).reshape(1, -1)
+
     sim1 = cosine_similarity(X, v1).reshape(-1)
     dictDf = {'Chromatos Sims': sim1 }
     recommendation_df = pd.DataFrame(dictDf, index = df_complet.index)
@@ -146,11 +150,12 @@ def traitement_tot(df_complet) :
     df_lda = lda(df_normal)
 
     for ech in df_complet.index :
-        df_reco = apply_cosine(df_lda, ech)
-        df_v3 = merge_cosinedf(df_reco, df_complet, ech)
+        if ech != 'ech91' :
+            df_reco = apply_cosine(df_lda, ech)
+            df_v3 = merge_cosinedf(df_reco, df_complet, ech)
 
-        print(df_v3.head())
+            print(df_v3.head())
 
-        liste_df_v3.append(df_v3)
+            liste_df_v3.append(df_v3)
 
     return liste_df_v3

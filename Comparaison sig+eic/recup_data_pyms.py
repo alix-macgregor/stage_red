@@ -107,9 +107,9 @@ def enregistrement(df_complet) :
     signatures de manière systématique.
     """
 
-    df_complet.to_csv('Echantillons.csv', index = True, header = True)
+    df_complet.to_csv(f'Echantillons.csv', index = True, header = True)
 
-def data(mode = '') :
+def data() :
     """
     Cette fonction permet de regrouper toutes les fonctions pour traiter tous
     les échantillons.
@@ -122,17 +122,15 @@ def data(mode = '') :
     X = []
     df_complet = None
 
-    if mode != '' :
-        mode = '_' + mode
 
     # Si le fichier n'existe pas : on traite tous les échantillons
-    if f'Echantillons{mode}.csv' not in os.listdir() :
-        for folder in os.listdir(f'Echantillons{mode}_AIA') :
-            for fil in os.listdir(f'Echantillons{mode}_AIA/{folder}') :
+    if f'Echantillons.csv' not in os.listdir() :
+        for folder in os.listdir(f'Echantillons_AIA') :
+            for fil in os.listdir(f'Echantillons_AIA/{folder}') :
 
                 if '.CDF' in fil and 'Zone' not in fil:
 
-                    file = f'/Echantillons{mode}_AIA/{folder}/{fil}'
+                    file = f'Echantillons_AIA/{folder}/{fil}'
                     fil = fil.strip('.CDF')
 
                     typ = folder.strip('ChromatosAIA')
@@ -150,9 +148,6 @@ def data(mode = '') :
                     X.append((eic_im_list))
                     liste_ech.append(fil)
                     liste_type.append(typ)
-
-
-
 
         sigs = signature(X, 3)
         print(f'ok sig')
@@ -174,17 +169,16 @@ def data(mode = '') :
 
     # Si le fichier existe, on récupère le dataframe enregistré sous csv
     else :
-        df_complet = pd.read_csv(f'/Echantillons{mode}.csv', index_col = 0)
+        df_complet = pd.read_csv(f'Echantillons.csv', index_col = 0)
         df_complet.columns = [int(x) if x != 'Type' else x for x in df_complet.columns ]
 
-        for folder in os.listdir(f'/Echantillons{mode}_AIA') :
+        for folder in os.listdir(f'Echantillons_AIA') :
 
-            for fil in os.listdir(f'/Echantillons{mode}_AIA/{folder}') :
-                print(f'ok {folder}')
+            for fil in os.listdir(f'Echantillons_AIA/{folder}') :
 
                 if '.CDF' in fil and 'Zone' not in fil:
 
-                    file = f'/Echantillons{mode}_AIA/{folder}/{fil}'
+                    file = f'Echantillons_AIA/{folder}/{fil}'
                     fil = fil.strip('.CDF')
 
                     if fil not in df_complet.index :
