@@ -109,7 +109,7 @@ def enregistrement(df_complet) :
 
     df_complet.to_csv('Echantillons.csv', index = True, header = True)
 
-def data() :
+def data(mode = '') :
     """
     Cette fonction permet de regrouper toutes les fonctions pour traiter tous
     les échantillons.
@@ -122,14 +122,17 @@ def data() :
     X = []
     df_complet = None
 
+    if mode != '' :
+        mode = '_' + mode
+
     # Si le fichier n'existe pas : on traite tous les échantillons
-    if 'Echantillons.csv' not in os.listdir() :
-        for folder in os.listdir('Echantillons_AIA') :
-            for fil in os.listdir(f'Echantillons_AIA/{folder}') :
+    if f'Echantillons{mode}.csv' not in os.listdir() :
+        for folder in os.listdir(f'Echantillons{mode}_AIA') :
+            for fil in os.listdir(f'Echantillons{mode}_AIA/{folder}') :
 
-                if '.CDF' in fil :
+                if '.CDF' in fil and 'Zone' not in fil:
 
-                    file = f'Echantillons_AIA/{folder}/{fil}'
+                    file = f'/Echantillons{mode}_AIA/{folder}/{fil}'
                     fil = fil.strip('.CDF')
 
                     typ = folder.strip('ChromatosAIA')
@@ -171,14 +174,17 @@ def data() :
 
     # Si le fichier existe, on récupère le dataframe enregistré sous csv
     else :
-        df_complet = pd.read_csv('Echantillons.csv', index_col = 0)
+        df_complet = pd.read_csv(f'/Echantillons{mode}.csv', index_col = 0)
         df_complet.columns = [int(x) if x != 'Type' else x for x in df_complet.columns ]
 
-        for folder in os.listdir('Echantillons_AIA') :
-            for fil in os.listdir(f'Echantillons_AIA/{folder}') :
-                if '.CDF' in fil :
+        for folder in os.listdir(f'/Echantillons{mode}_AIA') :
 
-                    file = f'Echantillons_AIA/{folder}/{fil}'
+            for fil in os.listdir(f'/Echantillons{mode}_AIA/{folder}') :
+                print(f'ok {folder}')
+
+                if '.CDF' in fil and 'Zone' not in fil:
+
+                    file = f'/Echantillons{mode}_AIA/{folder}/{fil}'
                     fil = fil.strip('.CDF')
 
                     if fil not in df_complet.index :

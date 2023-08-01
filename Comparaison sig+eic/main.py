@@ -4,7 +4,6 @@ Created on Mon Jun 26 14:30:50 2023
 
 @author: macgr
 """
-
 from recup_data_pyms import data
 from trait_data_pyms import traitement_tot
 
