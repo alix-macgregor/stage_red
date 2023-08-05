@@ -5,30 +5,31 @@ Created on Mon Jun 26 14:30:50 2023
 @author: macgr
 """
 
-from recup_data_pyms import data
-from recup_data_tot import data_mode
-from trait_data_pyms import traitement_tot
+from recup_data import data_mode, data_test
+from trait_data import traitement_tot
 
 import pandas as pd
 
-def simulation(tot = False) :
-    if tot :
+def simulation() :
+    """
+    Lance la simulation
+    """
 
-        df_hydro = data_mode('hydro')
-        df_alcool = data_mode('alcool')
+    # récupération de la base de données connue
+    df_hydro = data_mode('hydro')
+    df_alcool = data_mode('alcool')
 
-        print(df_complet.columns)
+    # récupération de le base de donnée inconnue
+    df_hydro_test = data_test('hydro')
+    df_alcool_test = data_test('alcool')
 
-        df_complet = pd.merge(df_hydro, df_alcool, right_index= True, left_index= True)
-        df = traitement_tot(df_complet)
+    # traitement des échantillons inconnus
+    liste_df = traitement_tot(df_hydro, df_alcool, df_hydro_test, df_alcool_test)
 
-    else :
-        df_complet = data()
+    # traitement de tous les échantillons
+    print(traitement_tot(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot = True))
 
-        df = traitement_tot(df_complet)
-
-
-    return df
+    return liste_df
 
 if __name__ == '__main__' :
-    df = simulation()
+    liste_df = simulation()
