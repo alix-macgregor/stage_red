@@ -83,6 +83,8 @@ def lda(df_complet) :
 
     df_complet_lda = pd.concat([df_complet_lda, X_pred])
 
+    print(df_complet_lda)
+
     df_complet_lda.sort_index(key=lambda x: np.argsort(index_natsorted(df_complet_lda.index)), inplace = True)
 
     df_complet_lda['Type'] = df_complet['Type']
@@ -131,16 +133,14 @@ def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, ech = None) :
         df_hydro = pd.concat([df_hydro, df_hydro_test])
         df_alcool = pd.concat([df_alcool, df_alcool_test])
 
-        df_hydro_normal = normal(df_hydro)
-        df_alcool_normal = normal(df_alcool)
+        df_complet = pd.merge(df_hydro, df_alcool, right_index= True, left_index= True)
 
-        df_lda_h, pred_h = lda(df_hydro_normal)
-        df_lda_a, pred_a = lda(df_alcool_normal)
+        df_complet['Type'] = df_complet['Type_y']
+        df_complet.drop(columns=['Type_x', 'Type_y'], inplace=True)
 
-        df_lda = pd.merge(df_lda_h, df_lda_a, right_index= True, left_index= True)
+        df_normal = normal(df_complet)
 
-        df_lda['Type'] = df_lda['Type_y']
-        df_lda.drop(columns=['Type_x', 'Type_y'], inplace=True)
+        df_lda, pred = lda(df_normal)
 
         for ech in df_lda.index :
 
@@ -157,16 +157,16 @@ def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, ech = None) :
         df_hydro = pd.concat([df_hydro, df_hydro_test.loc[[ech]]])
         df_alcool = pd.concat([df_alcool, df_alcool_test.loc[[ech]]])
 
-        df_hydro_normal = normal(df_hydro)
-        df_alcool_normal = normal(df_alcool)
+        df_complet = pd.merge(df_hydro, df_alcool, right_index= True, left_index= True)
 
-        df_lda_h, pred_h = lda(df_hydro_normal)
-        df_lda_a, pred_a = lda(df_alcool_normal)
+        df_complet['Type'] = df_complet['Type_y']
+        df_complet.drop(columns=['Type_x', 'Type_y'], inplace=True)
 
-        df_lda = pd.merge(df_lda_h, df_lda_a, right_index= True, left_index= True)
+        df_normal = normal(df_complet)
 
-        df_lda['Type'] = df_lda['Type_y']
-        df_lda.drop(columns=['Type_x', 'Type_y'], inplace=True)
+        df_lda, pred = lda(df_normal)
+
+        print(f"Pour l'échantillon {ech}, la prédiction lda est {pred}")
 
         df_reco = apply_cosine(df_lda, ech)
 
@@ -189,8 +189,8 @@ def traitement_tot(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot = Fal
         liste_df = []
 
         for ech in df_hydro_test.index :
-                # df_ech = pd.concat([df_hydro, df_alcool, df_hydro_test, df_alcool_test, df_hydro_test.loc[[ech]]])
-                liste_df.append(traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, ech))
+            print(ech)
+            liste_df.append(traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, ech))
 
         if liste_df == [] :
             print("Vous n'avez pas téléchargé de nouveaux échantillons à comparer")
