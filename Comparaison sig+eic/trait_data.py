@@ -72,18 +72,14 @@ def lda(df_complet) :
     columns = lda.get_feature_names_out()
 
     df_complet_lda = pd.DataFrame(lda.transform(X), index = X.index, columns = columns)
-    df_complet_lda['Type_transform'] = y
 
     type_pred = lda.predict(X_pred)
 
     pred = label_encoder.inverse_transform(type_pred)
 
     X_pred = pd.DataFrame(lda.transform(X_pred), index = X_pred.index, columns = columns)
-    X_pred['Type_transform'] = type_pred
 
     df_complet_lda = pd.concat([df_complet_lda, X_pred])
-
-    print(df_complet_lda)
 
     df_complet_lda.sort_index(key=lambda x: np.argsort(index_natsorted(df_complet_lda.index)), inplace = True)
 
@@ -91,7 +87,7 @@ def lda(df_complet) :
 
     # print('ok lda')
 
-    return df_complet_lda, pred
+    return df_complet_lda, pred[0]
 
 def apply_cosine (df_complet, ech) :
     """
@@ -123,26 +119,30 @@ def merge_cosinedf (recommendation_df, df_complet, ech) :
 
     return results[['Chromatos Sims', 'Type']]
 
-def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, ech = None) :
+def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot) :
     """
     Cette fontion permet de regrouper tout le traitement des données et renvoie le dataframe avec les similitudes.
     """
 
-    if ech is None :
-
-        df_hydro = pd.concat([df_hydro, df_hydro_test])
-        df_alcool = pd.concat([df_alcool, df_alcool_test])
-
+    if tot == True :
         df_complet = pd.merge(df_hydro, df_alcool, right_index= True, left_index= True)
 
         df_complet['Type'] = df_complet['Type_y']
         df_complet.drop(columns=['Type_x', 'Type_y'], inplace=True)
 
-        df_normal = normal(df_complet)
+        liste_df = []
 
-        df_lda, pred = lda(df_normal)
+        for i, ech in enumerate(df_complet.index) :
+            print(f'\n{ech} :\n')
 
-        for ech in df_lda.index :
+            classe = df_complet.loc[[ech]]['Type']
+            df_complet.loc[ech, 'Type'] = 'Unknown'
+
+            df_normal = normal(df_complet)
+
+            df_lda, pred = lda(df_normal)
+
+            print(f"\nPour l'échantillon {ech}, la prédiction lda est {pred}\n")
 
             df_reco = apply_cosine(df_lda, ech)
 
@@ -150,47 +150,53 @@ def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, ech = None) :
 
             print(df.head())
 
-        return "Fini"
+            df_complet.loc[ech, 'Type'] = classe[0]
 
-    else :
+            liste_df.append(df)
 
-        df_hydro = pd.concat([df_hydro, df_hydro_test.loc[[ech]]])
-        df_alcool = pd.concat([df_alcool, df_alcool_test.loc[[ech]]])
-
-        df_complet = pd.merge(df_hydro, df_alcool, right_index= True, left_index= True)
-
-        df_complet['Type'] = df_complet['Type_y']
-        df_complet.drop(columns=['Type_x', 'Type_y'], inplace=True)
-
-        df_normal = normal(df_complet)
-
-        df_lda, pred = lda(df_normal)
-
-        print(f"Pour l'échantillon {ech}, la prédiction lda est {pred}")
-
-        df_reco = apply_cosine(df_lda, ech)
-
-        df = merge_cosinedf(df_reco, df_hydro, ech)
-
-        print(df.head())
-
-        return df
-
-def traitement_tot(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot = False) :
-    """
-    Cette fonction permet de faire le traitement pour tous les échantillons inconnus
-    """
-    if tot :
-        message = traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test)
-        return message
+        return liste_df
 
     else :
 
         liste_df = []
 
         for ech in df_hydro_test.index :
-            print(ech)
-            liste_df.append(traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, ech))
+            print(f'\n{ech}\n')
+
+            df_hydro_copy = pd.concat([df_hydro, df_hydro_test.loc[[ech]]])
+            df_alcool_copy = pd.concat([df_alcool, df_alcool_test.loc[[ech]]])
+
+            df_complet = pd.merge(df_hydro_copy, df_alcool_copy, right_index= True, left_index= True)
+
+            df_complet['Type'] = df_complet['Type_y']
+            df_complet.drop(columns=['Type_x', 'Type_y'], inplace=True)
+
+            df_normal = normal(df_complet)
+
+            df_lda, pred = lda(df_normal)
+
+            print(f"\nPour l'échantillon {ech}, la prédiction lda est {pred}\n")
+
+            df_reco = apply_cosine(df_lda, ech)
+
+            df = merge_cosinedf(df_reco, df_hydro, ech)
+
+            print(df.head())
+
+            liste_df.append(df)
+
+        return liste_df
+
+def traitement_tot(df_hydro, df_alcool, df_hydro_test = None, df_alcool_test = None, tot = False) :
+    """
+    Cette fonction permet de faire le traitement pour tous les échantillons inconnus
+    """
+    if tot :
+        message = traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot)
+        return message
+
+    else :
+        liste_df = traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot)
 
         if liste_df == [] :
             print("Vous n'avez pas téléchargé de nouveaux échantillons à comparer")

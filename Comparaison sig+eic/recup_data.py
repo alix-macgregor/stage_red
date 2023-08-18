@@ -27,7 +27,6 @@ def recuperation_ech(file) :
     """
 
     chrom = ANDI_reader(file)
-
     return chrom
 
 def eic(chrom, liste_ion) :
@@ -45,34 +44,20 @@ def eic(chrom, liste_ion) :
                                            right_bound = 0.2,
                                            left_bound = 0.2)
 
-    masse_liste = eic.mass_list
-    presence = []
-
-    for ion in liste_ion :
-        if ion in masse_liste :
-            presence.append(True)
-
-        else :
-            presence.append(False)
-
     # Récupération des eics sous forme de liste
     eic_im = eic.intensity_matrix
 
     # Normalisation des eics par rapport à la somme de toutes les intensités
     eic_im_list = []
-    taille = np.array(eic_im).shape[0]
-    for i, array in enumerate(eic_im.T) :
+    for array in eic_im.T :
         item_list = []
-        if presence[i] :
-            somme = float(np.sum(np.array(array)))
-            for item in array :
-                if somme == 0 :
-                    item_list.append(item)
-                else :
-                    norm = float(item/somme)
-                    item_list.append(norm)
-        else :
-            item_list = [0 for i in range(taille)]
+        somme = float(np.sum(np.array(array)))
+        for item in array :
+            if somme == 0 :
+                item_list.append(item)
+            else :
+                norm = float(item/somme)
+                item_list.append(norm)
 
         eic_im_list.append(item_list)
     return eic_im_list
@@ -148,9 +133,13 @@ def data_test(mode) :
             fil = fil.strip('_')
             fil = fil.lower()
             fil = fil.replace(' ', '')
+            fil = fil.replace('-', '_')
 
             try :
                 chrom = recuperation_ech(file)
+                if chrom.min_rt < 149 and mode == 'hydro' :
+                    print('trim')
+                    chrom.trim("149s", "2969s")
                 eic_im_list = eic(chrom, liste_ion)
 
             except ValueError :
@@ -178,7 +167,7 @@ def data_test(mode) :
                                                 liste_type[i])])
     return df_complet
 
-def data_mode(mode, test = False) :
+def data_mode(mode) :
     """
     Cette fonction permet de regrouper toutes les fonctions pour traiter tous
     les échantillons.
@@ -190,7 +179,7 @@ def data_mode(mode, test = False) :
     elif mode == 'hydro' :
         liste_ion = [43, 83, 57, 71, 128, 142, 104, 118, 91, 105, 134, 117, 149]
 
-    liste_classe = ['DP', 'S', 'D', 'A', 'I', 'In', 'NP', 'NA', 'O']
+    liste_classe = ['DP', 'S', 'D', 'I', 'NP', 'NA', 'O', 'PI']
     liste_ech = []
     liste_type = []
     X = []
@@ -210,6 +199,8 @@ def data_mode(mode, test = False) :
                     fil = fil.strip('_')
                     fil = fil.lower()
                     fil = fil.replace(' ', '')
+
+                    print(classe)
 
                     try :
                         chrom = recuperation_ech(file)
@@ -281,7 +272,6 @@ def data_mode(mode, test = False) :
 
     df_complet.sort_index(key=lambda x: np.argsort(index_natsorted(df_complet.index)), inplace = True)
 
-    if not test :
-        enregistrement(df_complet, mode)
+    enregistrement(df_complet, mode)
 
     return df_complet
