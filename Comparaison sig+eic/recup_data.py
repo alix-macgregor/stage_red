@@ -152,13 +152,11 @@ def data_test(mode) :
             liste_type.append('Unknown')
 
     sigs = signature(X, 3)
-    # print(f'ok sig')
 
     # On crée le dataframe complet
     for i, sig in enumerate(sigs) :
         if df_complet is None :
             df_complet = dataframe(sig, liste_ech[i], liste_type[i])
-            # print('création df_complet')
 
         else :
             df_complet = pd.concat([df_complet,
@@ -179,7 +177,7 @@ def data_mode(mode) :
     elif mode == 'hydro' :
         liste_ion = [43, 83, 57, 71, 128, 142, 104, 118, 91, 105, 134, 117, 149]
 
-    liste_classe = ['DP', 'S', 'D', 'I', 'NP', 'NA', 'O', 'PI']
+    liste_classe = ['DP', 'S', 'O', 'NP', 'NA', 'D', 'I', 'In', 'PI']
     liste_ech = []
     liste_type = []
     X = []
@@ -200,8 +198,6 @@ def data_mode(mode) :
                     fil = fil.lower()
                     fil = fil.replace(' ', '')
 
-                    print(classe)
-
                     try :
                         chrom = recuperation_ech(file)
                         eic_im_list = eic(chrom, liste_ion)
@@ -215,7 +211,6 @@ def data_mode(mode) :
                     liste_type.append(classe)
 
         sigs = signature(X, 3)
-        # print(f'ok sig')
 
         # On crée le dataframe complet
         for i, sig in enumerate(sigs) :
@@ -223,7 +218,6 @@ def data_mode(mode) :
             if df_complet is None :
 
                 df_complet = dataframe(sig, liste_ech[i], liste_type[i])
-                # print('création df_complet')
 
             else :
 

@@ -4,7 +4,7 @@ Created on Wed Jun 14 14:00:15 2023
 
 @author: macgr
 """
-
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -29,8 +29,6 @@ def normal(df_complet) :
 
     df_normal['Type'] = df_complet['Type']
 
-    # print('ok normal')
-
     return df_normal
 
 def encode(df_complet) :
@@ -43,8 +41,6 @@ def encode(df_complet) :
 
     df_encode = df_complet.copy()
     df_encode['Type_transform'] = label_encoder.transform(target)
-
-    # print('ok encode')
 
     return df_encode, label_encoder
 
@@ -85,8 +81,6 @@ def lda(df_complet) :
 
     df_complet_lda['Type'] = df_complet['Type']
 
-    # print('ok lda')
-
     return df_complet_lda, pred[0]
 
 def apply_cosine (df_complet, ech) :
@@ -102,8 +96,6 @@ def apply_cosine (df_complet, ech) :
     dictDf = {'Chromatos Sims': sim1 }
     recommendation_df = pd.DataFrame(dictDf, index = df_complet.index)
 
-    # print('ok cosine')
-
     return recommendation_df
 
 def merge_cosinedf (recommendation_df, df_complet, ech) :
@@ -115,14 +107,15 @@ def merge_cosinedf (recommendation_df, df_complet, ech) :
     df_ech = pd.merge(df_complet, recommendation_df.loc[[ech]], left_index = True, right_index = True).sort_values(by = "Chromatos Sims", ascending = False)
     results = pd.concat([df_ech, results])
 
-    # print('ok merge')
-
     return results[['Chromatos Sims', 'Type']]
 
 def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot) :
     """
     Cette fontion permet de regrouper tout le traitement des données et renvoie le dataframe avec les similitudes.
     """
+
+    taux_lda = 0
+    taux_cos = 0
 
     if tot == True :
         df_complet = pd.merge(df_hydro, df_alcool, right_index= True, left_index= True)
@@ -132,8 +125,8 @@ def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot) :
 
         liste_df = []
 
-        for i, ech in enumerate(df_complet.index) :
-            print(f'\n{ech} :\n')
+        for ech in df_complet.index :
+            print(f"\nTest avec l'échantillon : {ech}\n")
 
             classe = df_complet.loc[[ech]]['Type']
             df_complet.loc[ech, 'Type'] = 'Unknown'
@@ -142,17 +135,29 @@ def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot) :
 
             df_lda, pred = lda(df_normal)
 
-            print(f"\nPour l'échantillon {ech}, la prédiction lda est {pred}\n")
+            if pred == classe[0] :
+                taux_lda += 1
 
             df_reco = apply_cosine(df_lda, ech)
 
             df = merge_cosinedf(df_reco, df_hydro, ech)
 
-            print(df.head())
+            classe_pp = df.loc[df.index[1], 'Type']
+            if classe_pp == classe[0] :
+                taux_cos += 1
+
+            rep = pd.DataFrame({'LDA' : pred, 'Cosine' : df.loc[df.index[1], 'Type'], 'Classe réelle' : classe[0]}, index = [ech])
+
+            print(rep)
+
+            liste_df.append(df)
 
             df_complet.loc[ech, 'Type'] = classe[0]
 
-            liste_df.append(df)
+        taux_lda = taux_lda/len(df_complet.index)
+        taux_cos = taux_cos/len(df_complet.index)
+
+        print(f"\nLe taux de réussite est :\n - Pour la LDA {round(taux_lda*100, 2)}%\n - Pour la comparaison {round(taux_cos*100, 2)}%")
 
         return liste_df
 
@@ -161,7 +166,7 @@ def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot) :
         liste_df = []
 
         for ech in df_hydro_test.index :
-            print(f'\n{ech}\n')
+            print(f"\nTest avec l'échantillon : {ech}\n")
 
             df_hydro_copy = pd.concat([df_hydro, df_hydro_test.loc[[ech]]])
             df_alcool_copy = pd.concat([df_alcool, df_alcool_test.loc[[ech]]])
@@ -181,7 +186,9 @@ def traitement(df_hydro, df_alcool, df_hydro_test, df_alcool_test, tot) :
 
             df = merge_cosinedf(df_reco, df_hydro, ech)
 
-            print(df.head())
+            rep = pd.DataFrame({'LDA' : pred, 'Cosine' : df.loc[df.index[1], 'Type'], 'Classe réelle' : df_complet.loc[ech, 'Type']}, index = [ech])
+
+            print(rep)
 
             liste_df.append(df)
 

@@ -26,7 +26,7 @@ def simulation() :
     # traitement des échantillons inconnus
     liste_df = traitement_tot(df_hydro, df_alcool, df_hydro_test, df_alcool_test)
 
-    liste_df_tot = traitement_tot(df_hydro, df_alcool, tot = True)
+    liste_df_tot = traitement_tot(df_hydro, df_alcool, tot =True)
     return liste_df, liste_df_tot
 
 if __name__ == '__main__' :
